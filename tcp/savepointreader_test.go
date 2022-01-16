@@ -10,6 +10,7 @@ import (
 	"github.com/google/go-cmp/cmp"
 )
 
+//nolint:funlen
 func TestSavePointReader(t *testing.T) {
 	r := strings.NewReader("test this thing can do lots")
 
