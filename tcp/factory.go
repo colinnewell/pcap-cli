@@ -14,7 +14,7 @@ import (
 )
 
 type ConnectionReader interface {
-	ReadStream(r Stream, a, b gopacket.Flow)
+	ReadStream(r Stream, a, b gopacket.Flow, completed chan interface{})
 }
 
 type StreamFactory struct {
@@ -35,7 +35,7 @@ func (f *StreamFactory) New(a, b gopacket.Flow) tcpassembly.Stream {
 	f.wg.Add(1)
 	go func() {
 		defer f.wg.Done()
-		f.reader.ReadStream(&r, a, b)
+		f.reader.ReadStream(&r, a, b, f.completed)
 	}()
 	return &r
 }
