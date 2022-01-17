@@ -1,13 +1,9 @@
 package tcp
 
 import (
-	"fmt"
-	"log"
-	"os"
 	"sync"
 
 	gpkt "github.com/colinnewell/pcap-cli/internal/gopacket"
-	jsoniter "github.com/json-iterator/go"
 
 	"github.com/google/gopacket"
 	"github.com/google/gopacket/tcpassembly"
@@ -40,28 +36,11 @@ func (f *StreamFactory) New(a, b gopacket.Flow) tcpassembly.Stream {
 	return &r
 }
 
-func (f *StreamFactory) Output(o *os.File) {
-	var json = jsoniter.ConfigCompatibleWithStandardLibrary
-	e := json.NewEncoder(os.Stdout)
-	e.SetIndent("  ", "  ")
+func (f *StreamFactory) Output(outputFunc func(chan interface{})) {
 	go func() {
 		f.wg.Wait()
 		close(f.completed)
 	}()
-	fmt.Print("[\n  ")
-	first := true
-	for c := range f.completed {
-		if first {
-			first = false
-		} else {
-			// this sucks.
-			fmt.Printf("  ,\n  ")
-		}
-		err := e.Encode(c)
-		if err != nil {
-			log.Println(err)
-			return
-		}
-	}
-	fmt.Println("]")
+
+	outputFunc(f.completed)
 }

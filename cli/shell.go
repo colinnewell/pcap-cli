@@ -7,6 +7,7 @@ import (
 	"os"
 
 	"github.com/colinnewell/pcap-cli/tcp"
+	jsoniter "github.com/json-iterator/go"
 
 	"github.com/google/gopacket"
 	"github.com/google/gopacket/layers"
@@ -15,7 +16,7 @@ import (
 	"github.com/spf13/pflag"
 )
 
-func Main(usage string, r tcp.ConnectionReader) {
+func Main(usage string, r tcp.ConnectionReader, outputFunc func(chan interface{})) {
 	var assemblyDebug, displayVersion bool
 	var serverPorts []int32
 
@@ -68,7 +69,7 @@ func Main(usage string, r tcp.ConnectionReader) {
 
 	assembler.FlushAll()
 
-	streamFactory.Output(os.Stdout)
+	streamFactory.Output(outputFunc)
 }
 
 func allowPort(serverPorts []int32, packet *layers.TCP) bool {
@@ -84,4 +85,29 @@ func allowPort(serverPorts []int32, packet *layers.TCP) bool {
 	}
 
 	return false
+}
+
+func SimpleJSONOutput(o *os.File) func(chan interface{}) {
+	return func(completed chan interface{}) {
+		var json = jsoniter.ConfigCompatibleWithStandardLibrary
+		e := json.NewEncoder(os.Stdout)
+		e.SetIndent("  ", "  ")
+
+		fmt.Fprint(o, "[\n  ")
+		first := true
+		for c := range completed {
+			if first {
+				first = false
+			} else {
+				// this sucks.
+				fmt.Fprintf(o, "  ,\n  ")
+			}
+			err := e.Encode(c)
+			if err != nil {
+				log.Println(o, err)
+				return
+			}
+		}
+		fmt.Fprintln(o, "]")
+	}
 }
