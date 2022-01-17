@@ -1,6 +1,7 @@
 package tcp
 
 import (
+	"io"
 	"sync"
 
 	gpkt "github.com/colinnewell/pcap-cli/internal/gopacket"
@@ -36,11 +37,11 @@ func (f *StreamFactory) New(a, b gopacket.Flow) tcpassembly.Stream {
 	return &r
 }
 
-func (f *StreamFactory) Output(outputFunc func(chan interface{})) {
+func (f *StreamFactory) Output(w io.Writer, outputFunc func(io.Writer, chan interface{})) {
 	go func() {
 		f.wg.Wait()
 		close(f.completed)
 	}()
 
-	outputFunc(f.completed)
+	outputFunc(w, f.completed)
 }
