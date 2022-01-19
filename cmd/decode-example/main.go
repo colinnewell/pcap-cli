@@ -8,7 +8,7 @@ import (
 )
 
 func main() {
-	f := example.ExampleConnectionBuilderFactory{}
+	f := example.ConnectionBuilderFactory{}
 	r := general.NewReader(&f)
 	pflag.BoolVar(&r.Verbose, "verbose", false, "Verbose about things errors")
 	cli.Main("", r, cli.SimpleJSONOutput)

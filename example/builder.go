@@ -9,13 +9,15 @@ import (
 	"github.com/colinnewell/pcap-cli/tcp"
 )
 
-type ExampleConnection struct {
+const bothSides = 2
+
+type Connection struct {
 	Address      string
 	ClientStream []byte
 	ServerStream []byte
 }
 
-type ExampleConnectionBuilder struct {
+type ConnectionBuilder struct {
 	address       tcp.ConnectionAddress
 	completed     chan interface{}
 	sidesComplete uint8
@@ -24,22 +26,22 @@ type ExampleConnectionBuilder struct {
 	serverData    bytes.Buffer
 }
 
-func (b *ExampleConnectionBuilder) ReadClientStream(s *tcp.TimeCaptureReader) error {
+func (b *ConnectionBuilder) ReadClientStream(s *tcp.TimeCaptureReader) error {
 	_, err := io.Copy(&b.clientData, s)
 	return err
 }
 
-func (b *ExampleConnectionBuilder) ReadServerStream(s *tcp.TimeCaptureReader) error {
+func (b *ConnectionBuilder) ReadServerStream(s *tcp.TimeCaptureReader) error {
 	_, err := io.Copy(&b.serverData, s)
 	return err
 }
 
-func (b *ExampleConnectionBuilder) ReadDone() {
+func (b *ConnectionBuilder) ReadDone() {
 	b.mu.Lock()
 	defer b.mu.Unlock()
 	b.sidesComplete++
-	if b.sidesComplete == 2 {
-		b.completed <- &ExampleConnection{
+	if b.sidesComplete == bothSides {
+		b.completed <- &Connection{
 			Address:      b.address.String(),
 			ClientStream: b.clientData.Bytes(),
 			ServerStream: b.serverData.Bytes(),
@@ -47,8 +49,10 @@ func (b *ExampleConnectionBuilder) ReadDone() {
 	}
 }
 
-type ExampleConnectionBuilderFactory struct{}
+type ConnectionBuilderFactory struct{}
 
-func (f *ExampleConnectionBuilderFactory) NewBuilder(address tcp.ConnectionAddress, completed chan interface{}) general.ConnectionBuilder {
-	return &ExampleConnectionBuilder{address: address, completed: completed}
+func (f *ConnectionBuilderFactory) NewBuilder(
+	address tcp.ConnectionAddress, completed chan interface{},
+) general.ConnectionBuilder {
+	return &ConnectionBuilder{address: address, completed: completed}
 }

@@ -60,6 +60,7 @@ func (r *Reader) ReadStream(s tcp.Stream, a, b gopacket.Flow, completed chan int
 			log.Printf("Error on response: %s\n", err)
 		}
 		// not much we can do about errors here.
+		//nolint:errcheck
 		io.Copy(ioutil.Discard, t)
 	}
 }
