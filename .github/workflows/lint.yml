@@ -5,10 +5,12 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
+      - name: Install Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: ${{ matrix.go-version }}
       - name: Install libpcap
         run: sudo apt-get install libpcap-dev
       - name: Run golangci-lint
-        uses: golangci/golangci-lint-action@v2
-        with:
-            version: v1.51.1
+        uses: golangci/golangci-lint-action@v7
