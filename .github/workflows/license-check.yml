@@ -6,7 +6,7 @@ jobs:
     name: Check for unapproved licenses
     steps:
     - name: Checkout the code
-      uses: actions/checkout@master
+      uses: actions/checkout@v4
 
     - name: Set up Ruby 2.6
       uses: ruby/setup-ruby@v1
